@@ -1,5 +1,9 @@
 ﻿@page "/counter"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Http
 @rendermode InteractiveServer
+@inject IHttpContextAccessor HttpContextAccessor
+@attribute [Authorize]
 
 <PageTitle>Counter</PageTitle>
 
@@ -9,6 +13,7 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+
 @code {
     private int currentCount = 0;
 
@@ -16,4 +21,11 @@
     {
         currentCount++;
     }
+
+    protected override void OnInitialized()
+    {
+        var token = HttpContextAccessor.HttpContext.Request.Cookies["access_token"];
+    }
 }
+
+

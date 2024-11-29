@@ -1,6 +1,8 @@
 ﻿@page "/weather"
+@using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 @attribute [StreamRendering]
 
@@ -39,13 +41,23 @@ else
     </table>
 }
 
+<h4>claims</h4>
 
 @if (authState != null)
 {
+    <p>authState not null</p>
+    <p>HasClaim: @authState.User</p>
+    <p>Count of claims: @authState.User.Claims.Count()</p>
+    <p>X-MS-CLIENT-PRINCIPAL-NAME?: @authState.User.HasClaim("name", "X-MS-CLIENT-PRINCIPAL-NAME")</p>
+    <p>X-MS-CLIENT-PRINCIPAL-NAME?: @authState.User.HasClaim("name", "X-MS-CLIENT-PRINCIPAL-ID")</p>
+    <p>Count of identities: @authState.User.Identities.Count()</p>
+    <p>IsAuthenticated: @(authState.User.Identity!.IsAuthenticated)</p>
+	<p>Name: @authState.User.Identity!.Name</p>
+
     <ul>
         @foreach (var claim in authState.User.Claims)
         {
-            <li>@claim.Type: @claim.Value</li>
+            <li><strong>Type:</strong> @claim.Type <br /><strong>Value:</strong> @claim.Value</li>
         }
     </ul>
 }
@@ -53,6 +65,7 @@ else
 {
     <p>Loading...</p>
 }
+<hr/>
 
 @code {
     private WeatherForecast[]? forecasts;
@@ -73,6 +86,7 @@ else
         }).ToArray();
 
         authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        
     }
 
     private class WeatherForecast
