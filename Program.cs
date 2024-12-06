@@ -68,6 +68,14 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
 
+app.UseHttpsRedirection();
+
+app.Use(async (context, next) =>
+{
+   context.Request.Scheme = "https";
+   await next.Invoke();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();

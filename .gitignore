@@ -490,3 +490,4 @@ obj/
 appsettings.json
 
 *.json
+.azure
