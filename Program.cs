@@ -1,5 +1,6 @@
 using learn_aca_entra.Components;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Identity.Web;
 
@@ -11,7 +12,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 //add Microsoft Entra ID authentication
-builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme);
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme);
+builder.Services.AddScoped<MyAuthService>();
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 
@@ -34,6 +36,7 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
+    .RequireAuthorization(new AuthorizeAttribute{AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme})
     .AddInteractiveServerRenderMode();
 
 app.UseAuthentication();

@@ -1,6 +1,7 @@
 ﻿@page "/weather"
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
+@inherits OwningComponentBase
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 
@@ -49,10 +50,11 @@ else
     <p>HasClaim: @authState.User</p>
     <p>Count of claims: @authState.User.Claims.Count()</p>
     <p>X-MS-CLIENT-PRINCIPAL-NAME?: @authState.User.HasClaim("name", "X-MS-CLIENT-PRINCIPAL-NAME")</p>
-    <p>X-MS-CLIENT-PRINCIPAL-NAME?: @authState.User.HasClaim("name", "X-MS-CLIENT-PRINCIPAL-ID")</p>
+    <p>x-ms-client-principal?: @authState.User.HasClaim("name", "x-ms-client-principal")</p>
     <p>Count of identities: @authState.User.Identities.Count()</p>
     <p>IsAuthenticated: @(authState.User.Identity!.IsAuthenticated)</p>
 	<p>Name: @authState.User.Identity!.Name</p>
+    <p>Message: @message</p>
 
     <ul>
         @foreach (var claim in authState.User.Claims)
@@ -70,6 +72,9 @@ else
 @code {
     private WeatherForecast[]? forecasts;
     private AuthenticationState authState;
+    private MyAuthService? myService { get; set; }
+
+    private string? message;
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,6 +91,9 @@ else
         }).ToArray();
 
         authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        myService = ScopedServices.GetRequiredService<MyAuthService>();
+        message = await myService.CheckAuthStatus(AuthenticationStateProvider);
         
     }
 
@@ -96,4 +104,5 @@ else
         public string? Summary { get; set; }
         public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
     }
+
 }
