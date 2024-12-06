@@ -5,7 +5,8 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 
-@attribute [StreamRendering]
+@* @attribute [StreamRendering] *@
+@rendermode InteractiveServer
 
 <PageTitle>Weather</PageTitle>
 
@@ -47,14 +48,11 @@ else
 @if (authState != null)
 {
     <p>authState not null</p>
-    <p>HasClaim: @authState.User</p>
     <p>Count of claims: @authState.User.Claims.Count()</p>
-    <p>X-MS-CLIENT-PRINCIPAL-NAME?: @authState.User.HasClaim("name", "X-MS-CLIENT-PRINCIPAL-NAME")</p>
-    <p>x-ms-client-principal?: @authState.User.HasClaim("name", "x-ms-client-principal")</p>
     <p>Count of identities: @authState.User.Identities.Count()</p>
     <p>IsAuthenticated: @(authState.User.Identity!.IsAuthenticated)</p>
 	<p>Name: @authState.User.Identity!.Name</p>
-    <p>Message: @message</p>
+    <p>Message: @authMessage</p>
 
     <ul>
         @foreach (var claim in authState.User.Claims)
@@ -68,13 +66,26 @@ else
     <p>Loading...</p>
 }
 <hr/>
+<button @onclick="GetClaimsPrincipalData">Get ClaimsPrincipal Data</button>
+@if (claims.Any())
+{
+    <ul>
+        @foreach (var claim in claims)
+        {
+            <li>@claim.Type: @claim.Value</li>
+        }
+    </ul>
+}
+<p>@surname</p>
+
 
 @code {
     private WeatherForecast[]? forecasts;
     private AuthenticationState authState;
-    private MyAuthService? myService { get; set; }
-
-    private string? message;
+    private AuthHelperService? myService { get; set; }
+    private IEnumerable<Claim> claims = Enumerable.Empty<Claim>();
+    private string? authMessage;
+    private string? surname;
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,9 +103,27 @@ else
 
         authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-        myService = ScopedServices.GetRequiredService<MyAuthService>();
-        message = await myService.CheckAuthStatus(AuthenticationStateProvider);
+        myService = ScopedServices.GetRequiredService<AuthHelperService>();
+        authMessage = await myService.CheckAuthStatus(AuthenticationStateProvider);
         
+    }
+
+    private async Task GetClaimsPrincipalData()
+    {
+        var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            authMessage = $"{user.Identity.Name} is authenticated.";
+            claims = user.Claims;
+            surname = user.FindFirst(c => c.Type == ClaimTypes.Surname)?.Value;
+        }
+        else
+        {
+            authMessage = "The user is NOT authenticated.";
+        }
     }
 
     private class WeatherForecast

@@ -1,8 +1,8 @@
 ﻿@page "/counter"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Http
 @rendermode InteractiveServer
-@inject IHttpContextAccessor HttpContextAccessor
 @attribute [Authorize]
 
 <PageTitle>Counter</PageTitle>
@@ -13,18 +13,32 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+<p>@authMessage</p>
 
 @code {
     private int currentCount = 0;
+    private string authMessage = "The user is NOT authenticated.";
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
     private void IncrementCount()
     {
         currentCount++;
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var token = HttpContextAccessor.HttpContext.Request.Cookies["access_token"];
+        if (authenticationState is not null)
+        {
+            var authState = await authenticationState;
+            var user = authState?.User;
+
+            if (user?.Identity is not null && user.Identity.IsAuthenticated)
+            {
+                authMessage = $"{user.Identity.Name} is authenticated.";
+            }
+        }
     }
 }
 

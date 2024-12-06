@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 
-public class MyAuthService
+public class AuthHelperService
 {
     public async Task<string> CheckAuthStatus(AuthenticationStateProvider authStateProvider)
     {
